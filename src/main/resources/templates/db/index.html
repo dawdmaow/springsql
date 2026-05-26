@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>SQLite Workspace</title>
+	<link rel="stylesheet" th:href="@{/css/db.css}">
+	<script src="https://unpkg.com/htmx.org@2.0.4"></script>
+	<script defer src="https://cdn.jsdelivr.net/npm/monaco-editor@0.52.2/min/vs/loader.js"></script>
+	<script defer th:src="@{/db-editor.js}"></script>
+</head>
+
+<body>
+	<main class="workspace-shell">
+		<section class="workspace-grid">
+			<aside th:replace="~{db/fragments/sidebar :: panel(false)}"></aside>
+
+			<section class="main-column">
+				<section class="panel panel--query">
+					<form class="query-form" th:hx-post="@{/db/query}" hx-target="#results-panel" hx-swap="outerHTML">
+						<input th:replace="~{db/fragments/selected-object-input :: field(false)}">
+
+						<div class="editor-frame">
+							<label class="query-form__label" for="sql-input">Statement</label>
+							<textarea id="sql-input" class="sql-editor" name="sql" rows="9" text="SELECT column FROM table;"
+								placeholder="SELECT column FROM table;"></textarea>
+							<div id="sql-editor-monaco" class="sql-editor-monaco" hidden></div>
+						</div>
+
+						<div class="query-actions">
+							<button class="button button--primary" type="submit">Run</button>
+						</div>
+					</form>
+				</section>
+
+				<section th:replace="~{db/fragments/results :: panel}"></section>
+			</section>
+		</section>
+	</main>
+</body>
+
+</html>

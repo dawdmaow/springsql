@@ -1,0 +1,11 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<body>
+	<input type="hidden"
+		id="selected-object-input"
+		name="selectedObject"
+		th:value="${selectedObject}"
+		th:fragment="field(oob)"
+		th:attr="hx-swap-oob=${oob} ? 'outerHTML' : null">
+</body>
+</html>

@@ -1,0 +1,8 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<body>
+<section th:replace="~{db/fragments/results :: panel}"></section>
+<aside th:replace="~{db/fragments/sidebar :: panel(true)}"></aside>
+<input th:replace="~{db/fragments/selected-object-input :: field(true)}">
+</body>
+</html>

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<body>
+	<section id="results-panel" class="panel panel--results" th:fragment="panel">
+		<div class="result-stack">
+			<div class="explorer-section__header">
+				<h3>Output</h3>
+			</div>
+
+			<div class="empty-state" th:if="${queryResult == null and queryError == null}">
+				<p>Run a statement to see rows, update counts, or SQL errors.</p>
+			</div>
+
+			<div class="error-state" th:if="${queryError != null}">
+				<p class="error-state__title">SQLite rejected the statement.</p>
+				<pre class="sql-block" th:text="${submittedSql}">SELECT * FROM users;</pre>
+				<p th:text="${queryError}">near \"FROM\": syntax error</p>
+			</div>
+
+			<div class="result-stack" th:if="${queryResult != null}">
+				<div class="result-summary"
+					th:if="${queryResult.message != null or (!queryResult.tabular and queryResult.affectedRowCount != null)}">
+					<p class="result-metric" th:if="${queryResult.message != null}" th:text="${queryResult.message}">
+						Statement executed successfully.
+					</p>
+					<p class="result-metric" th:if="${!queryResult.tabular and queryResult.affectedRowCount != null}">
+						Rows affected: <strong th:text="${queryResult.affectedRowCount}">1</strong>
+					</p>
+				</div>
+
+				<div class="table-scroll" th:if="${queryResult.tabular}">
+					<table class="result-table">
+						<thead>
+							<tr>
+								<th th:each="column : ${queryResult.columns}">
+									<div class="result-column">
+										<span th:text="${column.name}">id</span>
+										<small th:text="${column.declaredType}">INTEGER</small>
+									</div>
+								</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr th:if="${!queryResult.hasRows()}">
+								<td th:colspan="${#lists.size(queryResult.columns)}">The statement returned no rows.</td>
+							</tr>
+							<tr th:each="row : ${queryResult.rows}">
+								<td th:each="cell : ${row}" th:text="${cell}">value</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+
+				<div class="hint-callout" th:if="${queryResult.truncated}">
+					Result output was truncated to the configured row limit.
+				</div>
+			</div>
+		</div>
+	</section>
+</body>
+
+</html>

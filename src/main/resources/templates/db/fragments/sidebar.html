@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<body>
+	<aside id="sidebar-panel" class="panel panel--sidebar" th:fragment="panel(oob)" th:attr="hx-swap-oob=${oob} ? 'outerHTML' : null">
+
+		<div class="empty-state" th:if="${#lists.isEmpty(databaseObjects)}">
+			<p>No tables or views exist yet. Create one with a SQL statement and it will show up here.</p>
+		</div>
+
+		<div class="explorer-stack" th:if="${!#lists.isEmpty(databaseObjects)}">
+			<th:block th:replace="~{db/fragments/sidebar :: objectSection('Tables', ${tableObjects}, 'T', '')}"></th:block>
+			<th:block th:replace="~{db/fragments/sidebar :: objectSection('Views', ${viewObjects}, 'V', 'object-link__icon--view')}">
+			</th:block>
+		</div>
+	</aside>
+
+	<section class="explorer-section" th:fragment="objectSection(title, objects, iconText, iconClass)" th:if="${!#lists.isEmpty(objects)}">
+		<div class="explorer-section__header">
+			<h3 th:text="${title}">Tables</h3>
+		</div>
+
+		<ul class="object-list">
+			<li class="object-list__item" th:each="databaseObject : ${objects}">
+				<button type="button" class="object-link" th:classappend="${databaseObject.name == selectedObject} ? ' is-active' : ''"
+					th:hx-get="@{/db/schema(name=${databaseObject.name})}" hx-target="#sidebar-panel" hx-swap="outerHTML">
+					<span class="object-link__main">
+						<span class="object-link__icon" th:classappend="${iconClass}" aria-hidden="true" th:text="${iconText}">T</span>
+						<span class="object-link__text" th:text="${databaseObject.name}">users</span>
+					</span>
+				</button>
+
+				<th:block th:if="${databaseObject.name == selectedObject}">
+					<div th:replace="~{db/fragments/sidebar :: schemaDetails}">
+					</div>
+				</th:block>
+			</li>
+		</ul>
+	</section>
+
+	<div class="object-details" th:fragment="schemaDetails">
+		<div class="error-state error-state--compact" th:if="${schemaError != null}">
+			<p class="error-state__title">Schema unavailable.</p>
+			<p th:text="${schemaError}">Could not load schema.</p>
+		</div>
+
+		<div class="empty-state empty-state--compact" th:if="${schema == null and schemaError == null}">
+			<p>Select a table or view to inspect its schema.</p>
+		</div>
+
+		<div class="schema-stack schema-stack--nested" th:if="${schema != null}">
+			<section class="schema-section">
+				<h4>Columns</h4>
+				<div class="table-scroll">
+					<table class="metadata-table metadata-table--compact">
+						<thead>
+							<tr>
+								<th>Name</th>
+								<th>Type</th>
+								<th>PK</th>
+								<th>FK</th>
+								<th>NN</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr th:each="column : ${schema.columns}">
+								<td><code th:text="${column.name}">id</code></td>
+								<td th:text="${#strings.isEmpty(column.declaredType) ? '(none)' : column.declaredType}">INTEGER</td>
+								<td th:text="${column.primaryKey ? 'Yes' : 'No'}">Yes</td>
+								<td class="column-reference"
+									th:text="${#strings.isEmpty(schema.foreignKeyReference(column.name)) ? '-' : schema.foreignKeyReference(column.name)}">
+									-
+								</td>
+								<td th:text="${column.nullable ? 'Yes' : 'No'}">No</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+			</section>
+
+			<section class="schema-section">
+				<h4>Indexes</h4>
+				<div class="empty-state empty-state--compact" th:if="${!schema.hasIndexes()}">
+					<p>No indexes declared.</p>
+				</div>
+				<div class="table-scroll" th:if="${schema.hasIndexes()}">
+					<table class="metadata-table metadata-table--compact">
+						<thead>
+							<tr>
+								<th>Name</th>
+								<th>Columns</th>
+								<th>Unique</th>
+								<th>Partial</th>
+								<th>Source</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr th:each="index : ${schema.indexes}">
+								<td><code th:text="${index.name}">sqlite_autoindex_users_1</code></td>
+								<td th:text="${#strings.listJoin(index.columns, ', ')}">email</td>
+								<td th:text="${index.unique ? 'Yes' : 'No'}">Yes</td>
+								<td th:text="${index.partial ? 'Yes' : 'No'}">No</td>
+								<td><span class="pill" th:text="${index.originDisplayName}">CREATE INDEX</span></td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+			</section>
+		</div>
+	</div>
+</body>
+
+</html>
